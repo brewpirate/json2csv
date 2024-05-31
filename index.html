@@ -1,0 +1,110 @@
+<html >
+  <head>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.11.1/dist/full.min.css" rel="stylesheet" type="text/css"/>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+  </head>
+  <body>
+    <div class="navbar bg-neutral text-neutral-content">
+        <div class="flex-1">
+            <a class="btn btn-ghost text-xl mx-8">json2csv</a>
+        </div>
+        <div class="navbar-end">
+            <div class="dropdown">
+                <div tabindex="0" role="button" class="btn m-1">
+                    Theme
+                    <svg width="12px" height="12px" class="h-2 w-2 fill-current opacity-60 inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048"><path d="M1799 349l242 241-1017 1017L7 590l242-241 775 775 775-775z"></path></svg>
+                </div>
+                <ul tabindex="0" class="dropdown-content z-[1] p-2 shadow-2xl bg-base-300 rounded-box w-52">
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Default" value="default"/></li>
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Retro" value="retro"/></li>
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Cyberpunk" value="cyberpunk"/></li>
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Valentine" value="valentine"/></li>
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Aqua" value="aqua"/></li>
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Forest" value="forest"/></li>
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Dracula" value="dracula"/></li>
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Cmyk" value="cmyk"/></li>
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Winter" value="winter"/></li>
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Sunset" value="sunset"/></li>
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Night" value="night"/></li>
+                    <li><input type="radio" name="theme-dropdown" class="theme-controller btn btn-sm btn-block btn-ghost justify-start" aria-label="Dim" value="dim"/></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container w-full mx-auto px-4">
+        <div class="px-8 pt-6 pb-4">
+            <div class="y-8 mb-4">select a json file...</div>
+            <form>
+                <input type="file" class="file-input file-input-bordered file-input-primary w-full max-w-xs"  name="uploadFile" accept=".json" required />
+                <br /><br />
+                <button class="btn btn-active btn-secondary btn-wide" type="submit" />Convert</button>
+                <button class="btn btn-active btn-accent " onclick="reset()" />Reset</button>
+            </form>
+            <div id="error"></div>
+        </div>  
+    </div>    
+
+    <script type="module">
+      import { json2csv } from "https://cdn.jsdelivr.net/npm/json-2-csv@5.5.1/+esm";
+
+      const convertJson = async (data) => {
+        const options = {};
+        return await json2csv(data, options);
+      }
+
+      const form = document.querySelector("form");
+
+      form.addEventListener("change", (e) => {
+        e.preventDefault();
+        document.getElementById("error").innerHTML = "";
+      });
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const form = e.currentTarget;
+        const file = e.target.uploadFile.files[0];
+
+        const csv_name = file.name.replace(".json", ".csv");
+        let reader = new FileReader();
+
+        reader.readAsText(file);
+
+        reader.onload = async function () {
+          try {
+            const uploadedJson = JSON.parse(reader.result);
+            const csv_raw = await convertJson(uploadedJson);
+            downloadCsv(csv_raw, csv_name);
+          } catch (error) {
+            writeError(error);
+          }
+        };
+
+        reader.onerror = function () {
+          console.log(reader.error);
+          writeError(reader.error);
+        };
+
+        reset();
+      });
+
+      const writeError = (msg) => {
+        document.getElementById("error").innerHTML = `<span> ${msg}</span>`;
+      };
+        
+      const reset = (msg) => {
+        document.getElementById("error").innerHTML = "";
+        form.reset();
+      };
+
+      const downloadCsv = (csvRaw, filename) => {
+        var hiddenElement = document.createElement("a");
+        hiddenElement.href = "data:text/csv;charset=utf-8," + encodeURI(csvRaw);
+        hiddenElement.target = "_blank";
+
+        hiddenElement.download = filename;
+        hiddenElement.click();
+      };
+    </script>
+  </body>
+</html>
